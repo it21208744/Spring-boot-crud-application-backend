@@ -1,5 +1,6 @@
 package com.the_polar_lights.spring_boot_crud_app.controller;
 
+import com.the_polar_lights.spring_boot_crud_app.DTO.LoginRequest;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.service.userService;
 import org.springframework.http.HttpStatus;
@@ -22,10 +23,26 @@ public class userController {
     }
 
     //might go to AuthController
+//    @PostMapping("login")
+//    public String loginUser(){
+//        return "login user";
+//    }
+
     @PostMapping("login")
-    public String loginUser(){
-        return "login user";
+    public ResponseEntity<String> loginUser(@RequestBody LoginRequest request){
+//        return new ResponseEntity<>(userService.loginUser(request.getEmail(), request.getPassword()), HttpStatus.OK);
+        userEntity user = userService.loginUser(request.getEmail(), request.getPassword());
+        if (user != null) {
+            return new ResponseEntity<>("Login successful! Welcome, ", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
     }
+
+//    @PostMapping("login")
+//    public String loginUser(@RequestBody LoginRequest loginRequest){
+//        return loginRequest.getEmail();
+//    }
 
     @GetMapping("/{id}")
     public String getSingleUser(){
