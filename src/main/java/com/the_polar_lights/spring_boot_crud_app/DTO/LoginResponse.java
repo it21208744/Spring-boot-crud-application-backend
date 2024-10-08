@@ -1,39 +1,25 @@
 package com.the_polar_lights.spring_boot_crud_app.DTO;
 
+import com.the_polar_lights.spring_boot_crud_app.Entity.refreshTokenEntity;
+import com.the_polar_lights.spring_boot_crud_app.Entity.roleEntity;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
+import java.util.Set;
+
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LoginResponse {
-    private String message;
-    private String email; // You can include the user's email if needed
-    private String token; // Placeholder for a future JWT token
 
-    // Constructor
-    public LoginResponse(String message, String email, String token) {
-        this.message = message;
-        this.email = email;
-        this.token = token;
-    }
+    private Integer status;
+    private String email;
+    private refreshTokenEntity token;
+    private Set<roleEntity> role;
 
-    // Getters and Setters
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
 }

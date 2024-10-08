@@ -1,11 +1,10 @@
 package com.the_polar_lights.spring_boot_crud_app.service;
 
+import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.repository.userRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,28 +32,23 @@ public class userService {
     //get all users
     //get user by email
 
-//    public userEntity loadUserByEmail(String email) throws UsernameNotFoundException{
-//        userEntity user = userRepository.findByEmail(email);
-//        if (user == null){
-//            throw new UsernameNotFoundException("User not found");
-//        }
-//
-//        return user;
-//    }
 
 
-    public userEntity loginUser(String email, String rawPassword) {
+    public LoginResponse loginUser(String email, String rawPassword) {
         userEntity user = userRepository.findByEmail(email);
         if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
-            return user;
+            return new LoginResponse(200 ,user.getEmail(), user.getToken(), user.getRoles());
         }
-        return null;
+        else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
+            LoginResponse response = new LoginResponse();
+            response.setStatus(401);
+            return response;
+
+        }
+        LoginResponse response = new LoginResponse();
+        response.setStatus(404);
+        return response;
     }
-    //create user
-//    public userEntity createUser(userEntity user){
-//        return userRepo.save(user);
-//    }
-    //update user
-    //delete user
+
 
 }

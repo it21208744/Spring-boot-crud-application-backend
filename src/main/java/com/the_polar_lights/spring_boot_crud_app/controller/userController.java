@@ -1,6 +1,7 @@
 package com.the_polar_lights.spring_boot_crud_app.controller;
 
 import com.the_polar_lights.spring_boot_crud_app.DTO.LoginRequest;
+import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.service.userService;
 import org.springframework.http.HttpStatus;
@@ -22,27 +23,22 @@ public class userController {
         return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
     }
 
-    //might go to AuthController
-//    @PostMapping("login")
-//    public String loginUser(){
-//        return "login user";
-//    }
+
 
     @PostMapping("login")
-    public ResponseEntity<String> loginUser(@RequestBody LoginRequest request){
-//        return new ResponseEntity<>(userService.loginUser(request.getEmail(), request.getPassword()), HttpStatus.OK);
-        userEntity user = userService.loginUser(request.getEmail(), request.getPassword());
-        if (user != null) {
-            return new ResponseEntity<>("Login successful! Welcome, ", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest request){
+
+        LoginResponse response = userService.loginUser(request.getEmail(), request.getPassword());
+
+
+        if (response.getStatus() == 404) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else if(response.getStatus() == 401){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+        return new ResponseEntity<>(response, HttpStatus.FOUND);
     }
 
-//    @PostMapping("login")
-//    public String loginUser(@RequestBody LoginRequest loginRequest){
-//        return loginRequest.getEmail();
-//    }
 
     @GetMapping("/{id}")
     public String getSingleUser(){
