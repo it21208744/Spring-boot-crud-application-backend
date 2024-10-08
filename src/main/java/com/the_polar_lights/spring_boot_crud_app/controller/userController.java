@@ -1,14 +1,24 @@
 package com.the_polar_lights.spring_boot_crud_app.controller;
 
+import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
+import com.the_polar_lights.spring_boot_crud_app.service.userService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
 public class userController {
 
+    private final userService userService;
+
+    public userController(userService userService) {
+        this.userService = userService;
+    }
+
     @PostMapping("register")
-    public String registerUser(){
-        return "register a user";
+    public ResponseEntity<userEntity> registerUser(@RequestBody userEntity user){
+        return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
     }
 
     //might go to AuthController
