@@ -5,6 +5,8 @@ import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.repository.userRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,10 +23,15 @@ public class userService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public userEntity createUser(userEntity user){
+    public ResponseEntity<String> createUser(userEntity user){
+        userEntity Existuser = userRepository.findByEmail(user.getEmail());
+        if (Existuser != null){
+            return new ResponseEntity("User with same email already exists", HttpStatus.CONFLICT);
+        }
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
-        return userRepository.save(user);
+        userRepository.save(user);
+        return new ResponseEntity("User registered", HttpStatus.CREATED);
     }
 
 
