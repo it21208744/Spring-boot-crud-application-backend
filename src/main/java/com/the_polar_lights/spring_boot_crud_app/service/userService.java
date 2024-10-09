@@ -3,6 +3,7 @@ package com.the_polar_lights.spring_boot_crud_app.service;
 import com.the_polar_lights.spring_boot_crud_app.DTO.JwtResponse;
 import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
 import com.the_polar_lights.spring_boot_crud_app.Entity.refreshTokenEntity;
+import com.the_polar_lights.spring_boot_crud_app.Entity.roleEntity;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.repository.TokenRepository;
 import com.the_polar_lights.spring_boot_crud_app.repository.userRepository;
@@ -14,6 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -50,6 +55,11 @@ public class userService {
 
     public ResponseEntity<?> loginUser(String email, String rawPassword) {
         userEntity user = userRepository.findByEmail(email);
+        Set<roleEntity> roles = user.getRoles();
+
+        List roleList = roles.stream()
+                .map(role ->  role.getName())
+                .collect(Collectors.toList());
         try {
             if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
                 refreshTokenEntity existToken = tokenRepository.findByUser(user);
@@ -60,20 +70,18 @@ public class userService {
                     saveToken.setToken(refreshToken);
                     saveToken.setUser(user);
                     tokenRepository.save(saveToken);
-                    return ResponseEntity.ok(new JwtResponse(accessToken, refreshToken));
+                    return ResponseEntity.ok(new JwtResponse(accessToken, existToken.getToken(), roleList));
+
                 }
                 else if(!jwtTokenUtils.validateToken(existToken.getToken())){
                     String accessToken = jwtTokenUtils.generateAccessToken(email);
                     String refreshToken = jwtTokenUtils.generateRefreshToken(email);
-                    refreshTokenEntity saveToken = new refreshTokenEntity();
-                    saveToken.setToken(refreshToken);
-                    saveToken.setUser(user);
-                    tokenRepository.delete(existToken);
-                    tokenRepository.save(saveToken);
-                    return ResponseEntity.ok(new JwtResponse(accessToken, refreshToken));
+                    existToken.setToken(refreshToken);
+                    tokenRepository.save(existToken);
+                    return ResponseEntity.ok(new JwtResponse(accessToken, existToken.getToken(), roleList));
                 }
                 String accessToken = jwtTokenUtils.generateAccessToken(email);
-                return ResponseEntity.ok(new JwtResponse(accessToken, existToken.getToken()));
+                return ResponseEntity.ok(new JwtResponse(accessToken, existToken.getToken(), roleList));
 
             } else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
                 return new ResponseEntity("Incorrect password", HttpStatus.UNAUTHORIZED);
