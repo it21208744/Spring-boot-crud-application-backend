@@ -55,43 +55,48 @@ public class userService {
 
     public ResponseEntity<?> loginUser(String email, String rawPassword) {
         userEntity user = userRepository.findByEmail(email);
-        Set<roleEntity> roles = user.getRoles();
 
-        List roleList = roles.stream()
-                .map(role ->  role.getName())
-                .collect(Collectors.toList());
-        try {
-            if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
-                refreshTokenEntity existToken = tokenRepository.findByUser(user);
-                if (existToken == null){
-                    String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
-                    String refreshToken = jwtTokenUtils.generateRefreshToken(email, roleList);
-                    refreshTokenEntity saveToken = new refreshTokenEntity();
-                    saveToken.setToken(refreshToken);
-                    saveToken.setUser(user);
-                    tokenRepository.save(saveToken);
-                    return ResponseEntity.ok(new JwtResponse(accessToken, existToken.getToken()));
+        if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
+            refreshTokenEntity existToken = tokenRepository.findByUser(user);
+            Set<roleEntity> roles = user.getRoles();
 
-                }
-                else if(!jwtTokenUtils.validateToken(existToken.getToken())){
-                    String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
-                    String refreshToken = jwtTokenUtils.generateRefreshToken(email, roleList);
-                    existToken.setToken(refreshToken);
-                    tokenRepository.save(existToken);
-                    return ResponseEntity.ok(new JwtResponse(accessToken, existToken.getToken()));
-                }
+            List roleList = roles.stream()
+                    .map(role ->  role.getName())
+                    .collect(Collectors.toList());
+            if (existToken == null){
                 String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
-                return ResponseEntity.ok(new JwtResponse(accessToken, existToken.getToken()));
-
-            } else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
-                return new ResponseEntity("Incorrect password", HttpStatus.UNAUTHORIZED);
+                String refreshToken = jwtTokenUtils.generateRefreshToken(email, roleList);
+                refreshTokenEntity saveToken = new refreshTokenEntity();
+                saveToken.setToken(refreshToken);
+                saveToken.setUser(user);
+                tokenRepository.save(saveToken);
+                return ResponseEntity.ok()
+                        .header("Authorization", "Bearer " + accessToken)
+                        .header("Refresh-Token", existToken.getToken())
+                        .build();
 
             }
-            return new ResponseEntity("User not found", HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+            else if(!jwtTokenUtils.validateToken(existToken.getToken())){
+                String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
+                String refreshToken = jwtTokenUtils.generateRefreshToken(email, roleList);
+                existToken.setToken(refreshToken);
+                tokenRepository.save(existToken);
+                return ResponseEntity.ok()
+                        .header("Authorization", "Bearer " + accessToken)
+                        .header("Refresh-Token", existToken.getToken())
+                        .build();
+            }
+            String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
+            return ResponseEntity.ok()
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Refresh-Token", existToken.getToken())
+                    .build();
 
+        } else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
+            return new ResponseEntity("Incorrect password", HttpStatus.UNAUTHORIZED);
+
+        }
+        return new ResponseEntity("User not found", HttpStatus.NOT_FOUND);
     }
 
 
