@@ -2,6 +2,7 @@ package com.the_polar_lights.spring_boot_crud_app.service;
 
 import com.the_polar_lights.spring_boot_crud_app.DTO.JwtResponse;
 import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
+import com.the_polar_lights.spring_boot_crud_app.DTO.UserDto;
 import com.the_polar_lights.spring_boot_crud_app.Entity.refreshTokenEntity;
 import com.the_polar_lights.spring_boot_crud_app.Entity.roleEntity;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
@@ -49,6 +50,15 @@ public class userService {
 
 
     //get all users
+    public ResponseEntity<?> viewAllUsers() {
+        List<userEntity> allUsers = userRepository.findAll();
+        List<UserDto> userList = new ArrayList<UserDto>();
+        for (userEntity user : allUsers) {
+            UserDto newUser = new UserDto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail());
+            userList.add(newUser);
+        }
+        return new ResponseEntity<>(userList, HttpStatus.OK);
+    }
     //get user by email
 
 

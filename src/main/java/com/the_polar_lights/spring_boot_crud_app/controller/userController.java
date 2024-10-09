@@ -36,9 +36,9 @@ public class userController {
         return "get single user";
     }
     @GetMapping
-    public String getAllUsers(){
-        return "get all user";
-    }
+    public ResponseEntity<?> getAllUsers(){
+        return userService.viewAllUsers();
+    };
     @PutMapping("/{id}")
     public String updateUser(){
         return "update a user";
