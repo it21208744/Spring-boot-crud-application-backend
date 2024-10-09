@@ -52,14 +52,29 @@ public class userService {
         userEntity user = userRepository.findByEmail(email);
         try {
             if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
-
+                refreshTokenEntity existToken = tokenRepository.findByUser(user);
+                if (existToken == null){
+                    String accessToken = jwtTokenUtils.generateAccessToken(email);
+                    String refreshToken = jwtTokenUtils.generateRefreshToken(email);
+                    refreshTokenEntity saveToken = new refreshTokenEntity();
+                    saveToken.setToken(refreshToken);
+                    saveToken.setUser(user);
+                    tokenRepository.save(saveToken);
+                    return ResponseEntity.ok(new JwtResponse(accessToken, refreshToken));
+                }
+                else if(!jwtTokenUtils.validateToken(existToken.getToken())){
+                    String accessToken = jwtTokenUtils.generateAccessToken(email);
+                    String refreshToken = jwtTokenUtils.generateRefreshToken(email);
+                    refreshTokenEntity saveToken = new refreshTokenEntity();
+                    saveToken.setToken(refreshToken);
+                    saveToken.setUser(user);
+                    tokenRepository.delete(existToken);
+                    tokenRepository.save(saveToken);
+                    return ResponseEntity.ok(new JwtResponse(accessToken, refreshToken));
+                }
                 String accessToken = jwtTokenUtils.generateAccessToken(email);
-                String refreshToken = jwtTokenUtils.generateRefreshToken(email);
-                refreshTokenEntity saveToken = new refreshTokenEntity();
-                saveToken.setToken(refreshToken);
-                saveToken.setUser(user);
-                tokenRepository.save(saveToken);
-                return ResponseEntity.ok(new JwtResponse(accessToken, refreshToken));
+                return ResponseEntity.ok(new JwtResponse(accessToken, existToken.getToken()));
+
             } else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
                 return new ResponseEntity("Incorrect password", HttpStatus.UNAUTHORIZED);
 
