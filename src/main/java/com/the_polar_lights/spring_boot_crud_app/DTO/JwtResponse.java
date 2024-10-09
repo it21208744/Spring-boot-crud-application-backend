@@ -12,5 +12,4 @@ import java.util.List;
 public class JwtResponse {
     private String accessToken;
     private String refreshToken;
-    private List roles;
 }

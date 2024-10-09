@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 @Component
 public class JwtTokenUtils {
@@ -18,9 +19,10 @@ public class JwtTokenUtils {
         // Use a secure key with HMAC-SHA algorithm
         this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     }
-    public String generateAccessToken(String email){
-        Map<String, String> claims = new HashMap<>();
+    public String generateAccessToken(String email, List role){
+        Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
+        claims.put("roles", role);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(email)
@@ -32,9 +34,10 @@ public class JwtTokenUtils {
 
 
 
-    public String generateRefreshToken(String email) {
-        Map<String, String> claims = new HashMap<>();
+    public String generateRefreshToken(String email, List role) {
+        Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
+        claims.put("roles", role);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(email)
