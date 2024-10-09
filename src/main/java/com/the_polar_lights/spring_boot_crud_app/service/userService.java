@@ -1,8 +1,10 @@
 package com.the_polar_lights.spring_boot_crud_app.service;
 
+import com.the_polar_lights.spring_boot_crud_app.DTO.JwtResponse;
 import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.repository.userRepository;
+import com.the_polar_lights.spring_boot_crud_app.utils.JwtTokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
@@ -10,17 +12,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class userService {
 
     private final userRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    @Autowired userService(userRepository userRepository, PasswordEncoder passwordEncoder){
+    private final JwtTokenUtils jwtTokenUtils;
+    @Autowired userService(userRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenUtils jwtTokenUtils){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtTokenUtils = jwtTokenUtils;
     }
 
     public ResponseEntity<String> createUser(userEntity user){
@@ -41,20 +44,24 @@ public class userService {
 
 
 
-    public LoginResponse loginUser(String email, String rawPassword) {
+    public ResponseEntity<?> loginUser(String email, String rawPassword) {
         userEntity user = userRepository.findByEmail(email);
-        if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
-            return new LoginResponse(200 ,user.getEmail(), user.getToken(), user.getRoles());
-        }
-        else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
-            LoginResponse response = new LoginResponse();
-            response.setStatus(401);
-            return response;
+        try {
+            if (user != null && passwordEncoder.matches(rawPassword, user.getPassword())) {
 
+                String accessToken = jwtTokenUtils.generateAccessToken(email);
+                String refreshToken = jwtTokenUtils.generateRefreshToken(email);
+                System.out.println(refreshToken);
+                return ResponseEntity.ok(new JwtResponse(accessToken, refreshToken));
+            } else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
+                return new ResponseEntity("Incorrect password", HttpStatus.UNAUTHORIZED);
+
+            }
+            return new ResponseEntity("User not found", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        LoginResponse response = new LoginResponse();
-        response.setStatus(404);
-        return response;
+
     }
 
 

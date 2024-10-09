@@ -26,17 +26,9 @@ public class userController {
 
 
     @PostMapping("login")
-    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest request){
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request){
 
-        LoginResponse response = userService.loginUser(request.getEmail(), request.getPassword());
-
-
-        if (response.getStatus() == 404) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else if(response.getStatus() == 401){
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        return new ResponseEntity<>(response, HttpStatus.FOUND);
+        return userService.loginUser(request.getEmail(), request.getPassword());
     }
 
 
