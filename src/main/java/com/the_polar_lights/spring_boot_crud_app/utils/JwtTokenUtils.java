@@ -54,7 +54,7 @@ public class JwtTokenUtils {
         }
     }
 
-    public String getUserNameFromtoken(String token){
+    public String getEmailFromToken(String token){
         return Jwts.parser()
                 .setSigningKey(secretKey)
                 .parseClaimsJws(token)

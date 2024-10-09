@@ -2,7 +2,9 @@ package com.the_polar_lights.spring_boot_crud_app.service;
 
 import com.the_polar_lights.spring_boot_crud_app.DTO.JwtResponse;
 import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
+import com.the_polar_lights.spring_boot_crud_app.Entity.refreshTokenEntity;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
+import com.the_polar_lights.spring_boot_crud_app.repository.TokenRepository;
 import com.the_polar_lights.spring_boot_crud_app.repository.userRepository;
 import com.the_polar_lights.spring_boot_crud_app.utils.JwtTokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +20,12 @@ import org.springframework.stereotype.Service;
 public class userService {
 
     private final userRepository userRepository;
+    private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtils jwtTokenUtils;
-    @Autowired userService(userRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenUtils jwtTokenUtils){
+    @Autowired userService(userRepository userRepository, TokenRepository tokenRepository ,PasswordEncoder passwordEncoder, JwtTokenUtils jwtTokenUtils){
         this.userRepository = userRepository;
+        this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenUtils = jwtTokenUtils;
     }
@@ -51,7 +55,10 @@ public class userService {
 
                 String accessToken = jwtTokenUtils.generateAccessToken(email);
                 String refreshToken = jwtTokenUtils.generateRefreshToken(email);
-                System.out.println(refreshToken);
+                refreshTokenEntity saveToken = new refreshTokenEntity();
+                saveToken.setToken(refreshToken);
+                saveToken.setUser(user);
+                tokenRepository.save(saveToken);
                 return ResponseEntity.ok(new JwtResponse(accessToken, refreshToken));
             } else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
                 return new ResponseEntity("Incorrect password", HttpStatus.UNAUTHORIZED);
