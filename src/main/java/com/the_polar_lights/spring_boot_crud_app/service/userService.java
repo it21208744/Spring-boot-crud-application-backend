@@ -1,5 +1,6 @@
 package com.the_polar_lights.spring_boot_crud_app.service;
 
+import com.the_polar_lights.spring_boot_crud_app.DTO.DecryptToken;
 import com.the_polar_lights.spring_boot_crud_app.DTO.JwtResponse;
 import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
 import com.the_polar_lights.spring_boot_crud_app.DTO.UserDto;
@@ -50,7 +51,10 @@ public class userService {
 
 
     //get all users
-    public ResponseEntity<?> viewAllUsers() {
+    public ResponseEntity<?> viewAllUsers(String token) {
+
+        DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
+        System.out.println(decryptedToken.getRoles());
         List<userEntity> allUsers = userRepository.findAll();
         List<UserDto> userList = new ArrayList<UserDto>();
         for (userEntity user : allUsers) {
@@ -74,6 +78,7 @@ public class userService {
                     .map(role ->  role.getName())
                     .collect(Collectors.toList());
             if (existToken == null){
+
                 String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
                 String refreshToken = jwtTokenUtils.generateRefreshToken(email, roleList);
                 refreshTokenEntity saveToken = new refreshTokenEntity();
@@ -91,6 +96,8 @@ public class userService {
                 String refreshToken = jwtTokenUtils.generateRefreshToken(email, roleList);
                 existToken.setToken(refreshToken);
                 tokenRepository.save(existToken);
+
+
                 return ResponseEntity.ok()
                         .header("Authorization", "Bearer " + accessToken)
                         .header("Refresh-Token", existToken.getToken())

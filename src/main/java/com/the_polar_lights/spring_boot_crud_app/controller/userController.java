@@ -35,9 +35,10 @@ public class userController {
     public String getSingleUser(){
         return "get single user";
     }
+
     @GetMapping
-    public ResponseEntity<?> getAllUsers(){
-        return userService.viewAllUsers();
+    public ResponseEntity<?> getAllUsers(@RequestHeader(value = "Authorization") String auth){
+        return userService.viewAllUsers(auth.substring(7));
     };
     @PutMapping("/{id}")
     public String updateUser(){
