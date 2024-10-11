@@ -1,6 +1,5 @@
 package com.the_polar_lights.spring_boot_crud_app.security;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -9,8 +8,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -18,38 +18,42 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests((authz) -> authz
-                        .requestMatchers("/users/register", "/users/login", "/users").permitAll()
+                .csrf(customizer -> customizer.disable())
+
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/users/register", "/users/login", "/users").permitAll() // Permit access to public endpoints
                         .anyRequest().authenticated()
-                )
-                .csrf(customizer -> customizer.disable());
+                );
 
         return http.build();
     }
 
-
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Value("${allowed.origin}")
-    private String allowedOrigin;
+    // CORS configuration
     @Bean
-    public WebMvcConfigurer getCorsConfiguration() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins(allowedOrigin)
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*");
-            }
-        };
+    public CorsFilter corsFilter() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.addAllowedOrigin("http://localhost:5173"); // Replace with your frontend URL
+        corsConfiguration.addAllowedHeader("*");
+        corsConfiguration.addAllowedMethod("*"); // Allows GET, POST, PUT, DELETE, etc.
+
+        // Expose the Authorization header
+        corsConfiguration.addExposedHeader("Authorization");
+        corsConfiguration.addExposedHeader("Refresh-Token");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration); // Apply CORS to all endpoints
+
+        return new CorsFilter(source);
     }
 }
