@@ -32,6 +32,11 @@ public class userController {
         return userService.loginUser(request.getEmail(), request.getPassword());
     }
 
+    @PostMapping("tokenLogin")
+    public ResponseEntity<?> tokenLogin(@RequestHeader(value = "Authorization") String auth){
+        return userService.loginUsingToken(auth);
+    }
+
 
     @GetMapping("/{id}")
     public String getSingleUser(){

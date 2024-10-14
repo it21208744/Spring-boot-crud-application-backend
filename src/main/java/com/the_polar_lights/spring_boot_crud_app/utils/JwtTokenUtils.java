@@ -45,7 +45,7 @@ public class JwtTokenUtils {
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60)) //System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 *60)) //System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7
                 .signWith(secretKey)
                 .compact();
 //        return "Hello from refresh token";

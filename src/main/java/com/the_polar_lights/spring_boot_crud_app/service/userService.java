@@ -14,10 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -102,9 +99,30 @@ public class userService {
         return new ResponseEntity("User not found", HttpStatus.NOT_FOUND);
     }
 
+    public ResponseEntity<?> loginUsingToken(String token) {
+        try{
+            DecryptToken decryptToken = jwtTokenUtils.getEmailRoleFromToken(token);
+            String existToken = tokenRepository.findByUser(userRepository.findByEmail(decryptToken.getEmail())).getToken();
+            if (Objects.equals(existToken, token)){
+                if(jwtTokenUtils.validateToken(token)){
+                    String accessToken = jwtTokenUtils.generateAccessToken(decryptToken.getEmail(), decryptToken.getRoles());
+                    return ResponseEntity.ok()
+                            .header("Authorization", "Bearer " + accessToken)
+                            .build();
+                }
+                return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+            }
+            return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+        } catch (Exception e){
+            System.out.println(e);
+            return new ResponseEntity<>("Invalid token", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
     //get all users
     public ResponseEntity<?> viewAllUsers(String token) {
-        if(jwtTokenUtils.validateToken(token) == true){
+        if(jwtTokenUtils.validateToken(token)){
             DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
             if(decryptedToken.getRoles().get(0).equals("Admin")){
                 List<userEntity> allUsers = userRepository.findAll();
@@ -122,7 +140,7 @@ public class userService {
     }
 
     public ResponseEntity<?> deleteUser(Long id, String token){
-        if(jwtTokenUtils.validateToken(token) == true && id != null){
+        if(jwtTokenUtils.validateToken(token) && id != null){
             DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
             if(decryptedToken.getRoles().get(0).equals("Admin")){
                 Optional<userEntity> existUser = userRepository.findById(id);
