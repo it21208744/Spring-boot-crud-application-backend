@@ -2,6 +2,8 @@ package com.the_polar_lights.spring_boot_crud_app.controller;
 
 import com.the_polar_lights.spring_boot_crud_app.DTO.LoginRequest;
 import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
+import com.the_polar_lights.spring_boot_crud_app.DTO.UpdateDto;
+import com.the_polar_lights.spring_boot_crud_app.DTO.UserDto;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.service.userService;
 import org.springframework.http.HttpStatus;
@@ -41,15 +43,15 @@ public class userController {
         return userService.viewAllUsers(auth.substring(7));
     };
     @PutMapping("/{id}")
-    public String updateUser(){
-        return "update a user";
+    public ResponseEntity<?> updateUser(@RequestHeader(value = "Authorization") String auth, @PathVariable Long id, @RequestBody UpdateDto userInfo){
+        return userService.updateUser(id, auth.substring(7), userInfo);
     }
 
     //patch method update
 
     @DeleteMapping("/{id}")
-    public String deleteUser(){
-        return "delete a user";
+    public ResponseEntity<?> deleteUser(@RequestHeader(value = "Authorization") String auth, @PathVariable Long id){
+        return userService.deleteUser(id, auth.substring(7));
     }
 
 

@@ -1,9 +1,6 @@
 package com.the_polar_lights.spring_boot_crud_app.service;
 
-import com.the_polar_lights.spring_boot_crud_app.DTO.DecryptToken;
-import com.the_polar_lights.spring_boot_crud_app.DTO.JwtResponse;
-import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
-import com.the_polar_lights.spring_boot_crud_app.DTO.UserDto;
+import com.the_polar_lights.spring_boot_crud_app.DTO.*;
 import com.the_polar_lights.spring_boot_crud_app.Entity.refreshTokenEntity;
 import com.the_polar_lights.spring_boot_crud_app.Entity.roleEntity;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
@@ -19,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,26 +48,7 @@ public class userService {
 
 
 
-    //get all users
-    public ResponseEntity<?> viewAllUsers(String token) {
-        if(jwtTokenUtils.validateToken(token) == true){
-            DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
-            System.out.println(decryptedToken.getRoles().get(0).getClass().getName());
 
-            if(decryptedToken.getRoles().get(0).equals("Admin")){
-                List<userEntity> allUsers = userRepository.findAll();
-                List<UserDto> userList = new ArrayList<UserDto>();
-                for (userEntity user : allUsers) {
-                    UserDto newUser = new UserDto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail());
-                    userList.add(newUser);
-                }
-                return new ResponseEntity<>(userList, HttpStatus.OK);
-            }
-            return new ResponseEntity<>("Not authorized", HttpStatus.UNAUTHORIZED);
-
-        }
-        return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
-    }
     //get user by email
 
 
@@ -121,6 +100,67 @@ public class userService {
 
         }
         return new ResponseEntity("User not found", HttpStatus.NOT_FOUND);
+    }
+
+    //get all users
+    public ResponseEntity<?> viewAllUsers(String token) {
+        if(jwtTokenUtils.validateToken(token) == true){
+            DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
+            if(decryptedToken.getRoles().get(0).equals("Admin")){
+                List<userEntity> allUsers = userRepository.findAll();
+                List<UserDto> userList = new ArrayList<UserDto>();
+                for (userEntity user : allUsers) {
+                    UserDto newUser = new UserDto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail());
+                    userList.add(newUser);
+                }
+                return new ResponseEntity<>(userList, HttpStatus.OK);
+            }
+            return new ResponseEntity<>("Not authorized", HttpStatus.UNAUTHORIZED);
+
+        }
+        return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+    }
+
+    public ResponseEntity<?> deleteUser(Long id, String token){
+        if(jwtTokenUtils.validateToken(token) == true && id != null){
+            DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
+            if(decryptedToken.getRoles().get(0).equals("Admin")){
+                Optional<userEntity> existUser = userRepository.findById(id);
+                if(existUser.isPresent()){
+                    refreshTokenEntity existToken = tokenRepository.findByUser(existUser.get());
+                    tokenRepository.delete(existToken);
+                    userRepository.delete(existUser.get());
+                    return new ResponseEntity<>("user deleted", HttpStatus.OK);
+                }
+                return new ResponseEntity<>("user not found", HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>("Not authorized", HttpStatus.UNAUTHORIZED);
+
+        }
+        return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+    }
+
+    public ResponseEntity<?> updateUser(Long id, String token, UpdateDto userInfo){
+        if (userInfo.getFirstName() == null || userInfo.getLastName() == null) {
+            return new ResponseEntity<>("firstName or lastName cannot be null", HttpStatus.BAD_REQUEST);
+        }
+        if(jwtTokenUtils.validateToken(token) && id != null){
+            DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
+            if(decryptedToken.getRoles().get(0).equals("Admin")){
+                Optional<userEntity> existUser = userRepository.findById(id);
+                if(existUser.isPresent()){
+                    userEntity updatedUser = existUser.get();
+                    updatedUser.setFirstName(userInfo.getFirstName());
+                    updatedUser.setLastName(userInfo.getLastName());
+                    userRepository.save(updatedUser);
+                    return new ResponseEntity<>("user updated", HttpStatus.OK);
+                }
+                return new ResponseEntity<>("user not found", HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>("Not authorized", HttpStatus.UNAUTHORIZED);
+
+        }
+        return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
     }
 
 

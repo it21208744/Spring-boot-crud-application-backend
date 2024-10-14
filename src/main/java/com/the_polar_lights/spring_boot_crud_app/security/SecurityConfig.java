@@ -21,7 +21,7 @@ public class SecurityConfig {
                 .csrf(customizer -> customizer.disable())
 
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/users/register", "/users/login", "/users").permitAll() // Permit access to public endpoints
+                        .requestMatchers("/users/register", "/users/login", "/users", "/users/{id}").permitAll() // Permit access to public endpoints
                         .anyRequest().authenticated()
                 );
 
