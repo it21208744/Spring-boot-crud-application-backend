@@ -5,6 +5,7 @@ import com.the_polar_lights.spring_boot_crud_app.Entity.refreshTokenEntity;
 import com.the_polar_lights.spring_boot_crud_app.Entity.roleEntity;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.repository.TokenRepository;
+import com.the_polar_lights.spring_boot_crud_app.repository.roleRepository;
 import com.the_polar_lights.spring_boot_crud_app.repository.userRepository;
 import com.the_polar_lights.spring_boot_crud_app.utils.JwtTokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,23 +24,37 @@ public class userService {
 
     private final userRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final roleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtils jwtTokenUtils;
-    @Autowired userService(userRepository userRepository, TokenRepository tokenRepository ,PasswordEncoder passwordEncoder, JwtTokenUtils jwtTokenUtils){
+    @Autowired userService(userRepository userRepository, TokenRepository tokenRepository ,PasswordEncoder passwordEncoder, JwtTokenUtils jwtTokenUtils, roleRepository roleRepository){
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenUtils = jwtTokenUtils;
+        this.roleRepository = roleRepository;
     }
 
-    public ResponseEntity<String> createUser(userEntity user){
+    public ResponseEntity<String> createUser(RegisterRequest user){
         userEntity Existuser = userRepository.findByEmail(user.getEmail());
         if (Existuser != null){
             return new ResponseEntity("User with same email already exists", HttpStatus.CONFLICT);
         }
         String encodedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
-        userRepository.save(user);
+        userEntity newUser = new userEntity();
+        newUser.setPassword(encodedPassword);
+        newUser.setLastName(user.getLastName());
+        newUser.setEmail(user.getEmail());
+        newUser.setFirstName(user.getFirstName());
+        Optional<roleEntity> roleOptional = roleRepository.findById(2L);
+        if (roleOptional.isPresent()) {
+            Set<roleEntity> roles = new HashSet<>();
+            roles.add(roleOptional.get());
+            newUser.setRoles(roles);  // Set roles as a Set
+        } else {
+            return new ResponseEntity<>("Role not found", HttpStatus.NOT_FOUND);
+        }
+        userRepository.save(newUser);
         return new ResponseEntity("User registered", HttpStatus.CREATED);
     }
 

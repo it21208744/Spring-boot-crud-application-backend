@@ -1,9 +1,6 @@
 package com.the_polar_lights.spring_boot_crud_app.controller;
 
-import com.the_polar_lights.spring_boot_crud_app.DTO.LoginRequest;
-import com.the_polar_lights.spring_boot_crud_app.DTO.LoginResponse;
-import com.the_polar_lights.spring_boot_crud_app.DTO.UpdateDto;
-import com.the_polar_lights.spring_boot_crud_app.DTO.UserDto;
+import com.the_polar_lights.spring_boot_crud_app.DTO.*;
 import com.the_polar_lights.spring_boot_crud_app.Entity.userEntity;
 import com.the_polar_lights.spring_boot_crud_app.service.userService;
 import org.springframework.http.HttpStatus;
@@ -21,7 +18,7 @@ public class userController {
     }
 
     @PostMapping("register")
-    public ResponseEntity<String> registerUser(@RequestBody userEntity user){
+    public ResponseEntity<String> registerUser(@RequestBody RegisterRequest user){
         return userService.createUser(user);
     }
 
