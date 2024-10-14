@@ -52,16 +52,23 @@ public class userService {
 
     //get all users
     public ResponseEntity<?> viewAllUsers(String token) {
+        if(jwtTokenUtils.validateToken(token) == true){
+            DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
+            System.out.println(decryptedToken.getRoles().get(0).getClass().getName());
 
-        DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
-        System.out.println(decryptedToken.getRoles());
-        List<userEntity> allUsers = userRepository.findAll();
-        List<UserDto> userList = new ArrayList<UserDto>();
-        for (userEntity user : allUsers) {
-            UserDto newUser = new UserDto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail());
-            userList.add(newUser);
+            if(decryptedToken.getRoles().get(0).equals("Admin")){
+                List<userEntity> allUsers = userRepository.findAll();
+                List<UserDto> userList = new ArrayList<UserDto>();
+                for (userEntity user : allUsers) {
+                    UserDto newUser = new UserDto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail());
+                    userList.add(newUser);
+                }
+                return new ResponseEntity<>(userList, HttpStatus.OK);
+            }
+            return new ResponseEntity<>("Not authorized", HttpStatus.UNAUTHORIZED);
+
         }
-        return new ResponseEntity<>(userList, HttpStatus.OK);
+        return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
     }
     //get user by email
 
