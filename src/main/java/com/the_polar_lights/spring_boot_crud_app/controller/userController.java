@@ -53,6 +53,7 @@ public class userController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@RequestHeader(value = "Authorization") String auth, @PathVariable Long id){
+        System.out.println('h');
         return userService.deleteUser(id, auth.substring(7));
     }
 
