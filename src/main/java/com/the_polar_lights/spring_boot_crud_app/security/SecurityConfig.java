@@ -50,6 +50,7 @@ public class SecurityConfig {
         // Expose the Authorization header
         corsConfiguration.addExposedHeader("Authorization");
         corsConfiguration.addExposedHeader("Refresh-Token");
+        corsConfiguration.addExposedHeader("roles");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration); // Apply CORS to all endpoints

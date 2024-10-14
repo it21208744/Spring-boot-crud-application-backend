@@ -57,57 +57,64 @@ public class userService {
             refreshTokenEntity existToken = tokenRepository.findByUser(user);
             Set<roleEntity> roles = user.getRoles();
 
-            List roleList = roles.stream()
-                    .map(role ->  role.getName())
+            // Convert role list to a comma-separated string
+            List<String> roleList = roles.stream()
+                    .map(role -> role.getName())
                     .collect(Collectors.toList());
-            if (existToken == null){
 
+            String roleHeaderValue = String.join(",", roleList);
+
+            if (existToken == null) {
                 String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
                 String refreshToken = jwtTokenUtils.generateRefreshToken(email, roleList);
                 refreshTokenEntity saveToken = new refreshTokenEntity();
                 saveToken.setToken(refreshToken);
                 saveToken.setUser(user);
                 tokenRepository.save(saveToken);
+
                 return ResponseEntity.ok()
                         .header("Authorization", "Bearer " + accessToken)
-                        .header("Refresh-Token", existToken.getToken())
+                        .header("Refresh-Token", refreshToken)
+                        .header("roles", roleHeaderValue)
                         .build();
-
-            }
-            else if(!jwtTokenUtils.validateToken(existToken.getToken())){
+            } else if (!jwtTokenUtils.validateToken(existToken.getToken())) {
                 String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
                 String refreshToken = jwtTokenUtils.generateRefreshToken(email, roleList);
                 existToken.setToken(refreshToken);
                 tokenRepository.save(existToken);
 
-
                 return ResponseEntity.ok()
                         .header("Authorization", "Bearer " + accessToken)
                         .header("Refresh-Token", existToken.getToken())
+                        .header("roles", roleHeaderValue)
                         .build();
             }
+
             String accessToken = jwtTokenUtils.generateAccessToken(email, roleList);
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + accessToken)
                     .header("Refresh-Token", existToken.getToken())
+                    .header("roles", roleHeaderValue)
                     .build();
 
         } else if (user != null && !passwordEncoder.matches(rawPassword, user.getPassword())) {
-            return new ResponseEntity("Incorrect password", HttpStatus.UNAUTHORIZED);
-
+            return new ResponseEntity<>("Incorrect password", HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity("User not found", HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
     }
 
     public ResponseEntity<?> loginUsingToken(String token) {
         try{
             DecryptToken decryptToken = jwtTokenUtils.getEmailRoleFromToken(token);
+            String roleHeaderValue = String.join(",", decryptToken.getRoles());
             String existToken = tokenRepository.findByUser(userRepository.findByEmail(decryptToken.getEmail())).getToken();
             if (Objects.equals(existToken, token)){
                 if(jwtTokenUtils.validateToken(token)){
                     String accessToken = jwtTokenUtils.generateAccessToken(decryptToken.getEmail(), decryptToken.getRoles());
                     return ResponseEntity.ok()
                             .header("Authorization", "Bearer " + accessToken)
+                            .header("roles", roleHeaderValue)
                             .build();
                 }
                 return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
