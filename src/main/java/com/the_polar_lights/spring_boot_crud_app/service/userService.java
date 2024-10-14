@@ -162,22 +162,35 @@ public class userService {
     }
 
     public ResponseEntity<?> deleteUser(Long id, String token){
-        if(jwtTokenUtils.validateToken(token) && id != null){
-            DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
-            if(decryptedToken.getRoles().get(0).equals("Admin")){
-                Optional<userEntity> existUser = userRepository.findById(id);
-                if(existUser.isPresent()){
-                    refreshTokenEntity existToken = tokenRepository.findByUser(existUser.get());
-                    tokenRepository.delete(existToken);
-                    userRepository.delete(existUser.get());
-                    return new ResponseEntity<>("user deleted", HttpStatus.OK);
-                }
-                return new ResponseEntity<>("user not found", HttpStatus.NOT_FOUND);
-            }
-            return new ResponseEntity<>("Not authorized", HttpStatus.UNAUTHORIZED);
+        try{
+            if(jwtTokenUtils.validateToken(token) && id != null){
 
+                DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
+
+                if(decryptedToken.getRoles().get(0).equals("Admin")){
+
+                    Optional<userEntity> existUser = userRepository.findById(id);
+
+                    if(existUser.isPresent()){
+
+                        refreshTokenEntity existToken = tokenRepository.findByUser(existUser.get());
+
+
+
+                        userRepository.delete(existUser.get());
+                        return new ResponseEntity<>("user deleted", HttpStatus.OK);
+                    }
+                    return new ResponseEntity<>("user not found", HttpStatus.NOT_FOUND);
+                }
+                return new ResponseEntity<>("Not authorized", HttpStatus.UNAUTHORIZED);
+
+            }
+            return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+        } catch (Exception e){
+            System.out.println(e);
+            return new ResponseEntity<>("Internal error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>("Invalid token", HttpStatus.UNAUTHORIZED);
+
     }
 
     public ResponseEntity<?> updateUser(Long id, String token, UpdateDto userInfo){
