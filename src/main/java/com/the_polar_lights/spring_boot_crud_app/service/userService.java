@@ -217,14 +217,18 @@ public class userService {
 
 
     public ResponseEntity<?> logout(String token) {
-        System.out.println(token);
             try {
-                DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
-                String userEmail = decryptedToken.getEmail();
-                refreshTokenEntity existToken = tokenRepository.findByUser(userRepository.findByEmail(userEmail));
-                existToken.setToken("");
-                tokenRepository.save(existToken);
-                return new ResponseEntity<>("token romoved", HttpStatus.OK);
+                if(token != null){
+                    System.out.println(token);
+                    DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
+                    String userEmail = decryptedToken.getEmail();
+                    refreshTokenEntity existToken = tokenRepository.findByUser(userRepository.findByEmail(userEmail));
+                    existToken.setToken("");
+                    tokenRepository.save(existToken);
+                    return new ResponseEntity<>("token romoved", HttpStatus.OK);
+                }
+                return new ResponseEntity<>("something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+
             } catch (Exception e) {
                 return new ResponseEntity<>("something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
             }
