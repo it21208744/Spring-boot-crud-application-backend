@@ -53,8 +53,12 @@ public class userController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@RequestHeader(value = "Authorization") String auth, @PathVariable Long id){
-        System.out.println('h');
         return userService.deleteUser(id, auth.substring(7));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization") String auth){
+        return userService.logout(auth.substring(7));
     }
 
 
