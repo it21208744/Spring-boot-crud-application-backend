@@ -164,20 +164,14 @@ public class userService {
     public ResponseEntity<?> deleteUser(Long id, String token){
         try{
             if(jwtTokenUtils.validateToken(token) && id != null){
-
                 DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
-
                 if(decryptedToken.getRoles().get(0).equals("Admin")){
-
                     Optional<userEntity> existUser = userRepository.findById(id);
-
                     if(existUser.isPresent()){
-
                         refreshTokenEntity existToken = tokenRepository.findByUser(existUser.get());
-
-
-
+                        tokenRepository.delete(existToken);
                         userRepository.delete(existUser.get());
+                        System.out.println(existUser.get().getId());
                         return new ResponseEntity<>("user deleted", HttpStatus.OK);
                     }
                     return new ResponseEntity<>("user not found", HttpStatus.NOT_FOUND);
