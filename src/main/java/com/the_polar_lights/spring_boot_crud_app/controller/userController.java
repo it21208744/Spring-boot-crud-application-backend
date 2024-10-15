@@ -58,6 +58,7 @@ public class userController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader(value = "Authorization") String auth){
+        System.out.println("hehe" + auth);
         return userService.logout(auth.substring(7));
     }
 

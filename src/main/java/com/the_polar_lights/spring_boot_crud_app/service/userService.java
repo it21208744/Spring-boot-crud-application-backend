@@ -220,7 +220,7 @@ public class userService {
 
 
     public ResponseEntity<?> logout(String token) {
-        if (jwtTokenUtils.validateToken(token)) {
+        System.out.println(token);
             try {
                 DecryptToken decryptedToken = jwtTokenUtils.getEmailRoleFromToken(token);
                 String userEmail = decryptedToken.getEmail();
@@ -231,7 +231,7 @@ public class userService {
             } catch (Exception e) {
                 return new ResponseEntity<>("something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
             }
-        } else return new ResponseEntity<>("token missing", HttpStatus.UNAUTHORIZED);
+
 
     }
 
