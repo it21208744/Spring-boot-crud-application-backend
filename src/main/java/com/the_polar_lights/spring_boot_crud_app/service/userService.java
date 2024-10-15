@@ -169,7 +169,10 @@ public class userService {
                     Optional<userEntity> existUser = userRepository.findById(id);
                     if(existUser.isPresent()){
                         refreshTokenEntity existToken = tokenRepository.findByUser(existUser.get());
-                        tokenRepository.delete(existToken);
+                        if(existToken != null){
+                            tokenRepository.delete(existToken);
+                            userRepository.delete(existUser.get());
+                        }
                         userRepository.delete(existUser.get());
                         System.out.println(existUser.get().getId());
                         return new ResponseEntity<>("user deleted", HttpStatus.OK);
