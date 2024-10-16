@@ -19,7 +19,7 @@ public class refreshTokenEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String token;
 
     @OneToOne(cascade = CascadeType.ALL)
